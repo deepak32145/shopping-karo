@@ -1,0 +1,29 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-sk}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-sk_local_pw}
+    ports: ["5432:5432"]
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./docker/postgres-init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sk"]
+      interval: 5s
+      retries: 10
+  mongo:
+    image: mongo:7
+    ports: ["27017:27017"]
+    volumes: [mongodata:/data/db]
+  redis:
+    image: redis:7-alpine
+    ports: ["6379:6379"]
+  localstack:
+    image: localstack/localstack:3
+    environment:
+      SERVICES: sns,sqs,s3,secretsmanager
+    ports: ["4566:4566"]
+volumes:
+  pgdata:
+  mongodata:
