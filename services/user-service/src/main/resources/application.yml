@@ -1,0 +1,25 @@
+server:
+  port: ${PORT:8084}
+
+spring:
+  application:
+    name: user-service
+  config:
+    import:
+      - optional:file:./.env[.properties]
+      - optional:file:./services/user-service/.env[.properties]
+  data:
+    mongodb:
+      uri: ${MONGO_URI:mongodb://localhost:27017/sk_user}
+      auto-index-creation: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+sk:
+  security:
+    jwks-uri: ${AUTH_JWKS_URL:http://localhost:8081/.well-known/jwks.json}
+    issuer: ${AUTH_ISSUER:shopping-karo-auth}

@@ -1,48 +1,89 @@
+# =====================================================================
+# Shopping Karo: one repo for the Java services, the Node services and the React app
+# =====================================================================
+
+# ---- Secrets and local config: NEVER commit ----
+# Every service reads its own gitignored .env (Gmail app password, Google settings, admin password, INTERNAL_API_KEY...)
+.env
+.env.*
+!.env.example
+!.env.sample
+*.pem
+*.key
+*.p8
+*.p12
+*.pfx
+*.jks
+*.keystore
+!**/src/test/resources/**/*.pem
+id_rsa*
+id_ed25519*
+credentials*.json
+serviceAccount*.json
+secrets/
+application-local.yml
+application-local.properties
+
 # ---- Java / Maven ----
 target/
 *.class
 *.jar
 *.war
+*.ear
 !.mvn/wrapper/maven-wrapper.jar
 hs_err_pid*
 replay_pid*
 dependency-reduced-pom.xml
+HELP.md
+.factorypath
+.apt_generated
+.springBeans
+.sts4-cache/
+# Eclipse / VS Code Java extension build output (Maven uses target/)
+libs/*/bin/
+services/*/bin/
+apps/*/bin/
 
-# ---- Gradle (in case) ----
+# ---- Gradle (not used, in case) ----
 .gradle/
 build/
 
-# ---- Node / React (apps/web) ----
+# ---- Node / React ----
 node_modules/
+.pnpm-store/
 dist/
 .vite/
 .turbo/
 .next/
+.parcel-cache/
+.cache/
 coverage/
+.nyc_output/
 *.tsbuildinfo
+.eslintcache
+*.tgz
 npm-debug.log*
 pnpm-debug.log*
 yarn-error.log*
+# This repo uses pnpm. A stray npm or yarn lockfile (from running `npm i` by mistake) must not be committed.
+package-lock.json
+npm-shrinkwrap.json
+yarn.lock
 
-# ---- Secrets / env (never commit) ----
-.env
-.env.*
-!.env.example
-*.pem
-*.key
-*.p12
-*.jks
-!**/src/test/resources/**/*.pem
-secrets/
-application-local.yml
-application-local.properties
+# ---- Test output ----
+test-results/
+playwright-report/
+playwright/.cache/
+**/surefire-reports/
+**/failsafe-reports/
 
-# ---- Terraform ----
+# ---- Terraform (infra/) ----
+# .terraform.lock.hcl IS committed on purpose: it pins provider versions.
 .terraform/
-.terraform.lock.hcl.bak
 *.tfstate
 *.tfstate.*
 crash.log
+crash.*.log
 *.tfvars
 *.tfvars.json
 !*.tfvars.example
@@ -55,20 +96,38 @@ terraform.rc
 tfplan
 *.tfplan
 
-# ---- IDE / OS ----
+# ---- Local database dumps / data ----
+*.rdb
+*.dump
+*.bson
+data/db/
+mongodata/
+
+# ---- IDE / editor / AI-assistant folders ----
 .idea/
 *.iml
+*.iws
+*.code-workspace
 .vscode/*
 !.vscode/extensions.json
 !.vscode/settings.json
 .classpath
 .project
 .settings/
+.cursor/
+.windsurf/
+.codex/
+.claude/
+
+# ---- OS ----
 .DS_Store
 Thumbs.db
+desktop.ini
+*.swp
+*~
 
 # ---- Logs / temp ----
 *.log
 logs/
 tmp/
-.claude/
+temp/

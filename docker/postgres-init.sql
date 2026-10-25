@@ -1,5 +1,4 @@
--- One logical database + role per service (see DESIGN.md §6)
-CREATE DATABASE sk_auth;
+-- One logical database per service (auth and user data live in MongoDB, see DESIGN.md)
 CREATE DATABASE sk_inventory;
 CREATE DATABASE sk_order;
 CREATE DATABASE sk_payment;

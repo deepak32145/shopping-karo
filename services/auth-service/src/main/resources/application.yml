@@ -1,0 +1,59 @@
+server:
+  port: ${PORT:8081}
+
+spring:
+  application:
+    name: auth-service
+  config:
+    # Local secrets (gitignored). Either location works, depending on the directory the service is started from.
+    import:
+      - optional:file:./.env[.properties]
+      - optional:file:./services/auth-service/.env[.properties]
+  data:
+    mongodb:
+      uri: ${MONGO_URI:mongodb://localhost:27017/sk_auth}
+      # Creates the unique-email and TTL indexes at startup (fine for dev; use migrations in prod).
+      auto-index-creation: true
+  mail:
+    host: ${MAIL_HOST:smtp.gmail.com}
+    port: ${MAIL_PORT:587}
+    username: ${EMAIL_USER:}
+    password: ${EMAIL_PASS:}
+    properties:
+      mail.smtp.auth: true
+      mail.smtp.starttls.enable: true
+      mail.smtp.connectiontimeout: 5000
+      mail.smtp.timeout: 8000
+      mail.smtp.writetimeout: 8000
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  health:
+    mail:
+      enabled: false # an SMTP outage must not mark the service unhealthy
+
+auth:
+  reset:
+    link-base-url: ${CLIENT_URL:http://localhost:5173}
+    ttl-minutes: 30
+  otp:
+    ttl-minutes: 10
+    max-attempts: 5
+    resend-cooldown-seconds: 60
+  google:
+    # OAuth client id (public). Blank disables Google sign-in.
+    client-id: ${GOOGLE_CLIENT_ID:}
+  admin:
+    # If set, this account is created at startup (verified, ADMIN role). If it already exists it is promoted to ADMIN.
+    email: ${ADMIN_EMAIL:}
+    password: ${ADMIN_PASSWORD:}
+  jwt:
+    issuer: shopping-karo-auth
+    access-ttl-minutes: 15
+    refresh-ttl-days: 14
+    # PEM contents (PKCS#8 private, X.509 public). Leave blank in dev: an ephemeral key is generated on each start.
+    private-key-pem: ${JWT_PRIVATE_KEY_PEM:}
+    public-key-pem: ${JWT_PUBLIC_KEY_PEM:}

@@ -18,11 +18,17 @@
 
   <properties>
     <java.version>21</java.version>
+    <!-- Docker Engine 29 needs a newer docker-java than Spring Boot 3.4 manages -->
+    <testcontainers.version>1.21.4</testcontainers.version>
   </properties>
 
   <modules>
     <module>libs/sk-contracts</module>
     <module>libs/sk-common</module>
+    <module>libs/sk-resource-server</module>
+    <module>services/auth-service</module>
+    <module>services/user-service</module>
+    <module>services/order-service</module>
   </modules>
 
   <dependencyManagement>
@@ -35,6 +41,11 @@
       <dependency>
         <groupId>com.shoppingkaro</groupId>
         <artifactId>sk-common</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.shoppingkaro</groupId>
+        <artifactId>sk-resource-server</artifactId>
         <version>${project.version}</version>
       </dependency>
     </dependencies>

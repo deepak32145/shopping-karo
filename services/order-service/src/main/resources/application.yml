@@ -1,0 +1,40 @@
+server:
+  port: ${PORT:8085}
+
+spring:
+  application:
+    name: order-service
+  config:
+    import:
+      - optional:file:./.env[.properties]
+      - optional:file:./services/order-service/.env[.properties]
+  data:
+    mongodb:
+      uri: ${MONGO_URI:mongodb://localhost:27017/sk_order}
+      auto-index-creation: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+sk:
+  security:
+    jwks-uri: ${AUTH_JWKS_URL:http://localhost:8081/.well-known/jwks.json}
+    issuer: ${AUTH_ISSUER:shopping-karo-auth}
+
+orders:
+  catalog-url: ${CATALOG_URL:http://localhost:8082}
+  cart-url: ${CART_URL:http://localhost:8083}
+  user-url: ${USER_URL:http://localhost:8084}
+  # Shared secret for catalog-service's /internal/* stock endpoints. Must match catalog-service's INTERNAL_API_KEY.
+  internal-key: ${INTERNAL_API_KEY:}
+  # How long an unpaid order holds its stock before it is cancelled and the stock goes back on sale.
+  pending-ttl-minutes: 15
+  # Orders below this subtotal pay the shipping fee (paise).
+  free-shipping-threshold: 49900
+  shipping-fee: 4900
+  # The fake gateway pretends to take a moment, like a real one.
+  payment-delay-ms: 900
+  max-payment-attempts: 5

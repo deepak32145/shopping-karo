@@ -14,7 +14,8 @@ services:
       retries: 10
   mongo:
     image: mongo:7
-    ports: ["27017:27017"]
+    # 27018 on the host because 27017 is often taken by a locally installed mongod
+    ports: ["27018:27017"]
     volumes: [mongodata:/data/db]
   redis:
     image: redis:7-alpine
