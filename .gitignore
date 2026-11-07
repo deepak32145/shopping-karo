@@ -110,7 +110,6 @@ mongodata/
 *.code-workspace
 .vscode/*
 !.vscode/extensions.json
-!.vscode/settings.json
 .classpath
 .project
 .settings/

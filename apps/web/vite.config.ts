@@ -31,6 +31,7 @@ export default defineConfig({
       },
       '/api/catalog': service(port('CATALOG', 8082)),
       '/api/cart': service(port('CART', 8083)),
+      '/api/assistant': service(port('ASSISTANT', 8086)),
       // order-service and user-service keep their natural paths (/orders, /admin/orders, /addresses)
       '/api/orders': stripApi(port('ORDER', 8085)),
       '/api/admin/orders': stripApi(port('ORDER', 8085)),

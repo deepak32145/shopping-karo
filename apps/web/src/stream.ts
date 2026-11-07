@@ -12,7 +12,7 @@ export interface StreamHandlers {
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 /** Turns one blank-line-terminated chunk of a Server-Sent Events stream into an event name and its data. */
-function parseChunk(chunk: string): { name: string; data: string } | null {
+export function parseChunk(chunk: string): { name: string; data: string } | null {
   let name = 'message';
   const data: string[] = [];
   for (const line of chunk.split('\n')) {

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import Categories from '../components/Categories';
 import DealRadar from '../components/DealRadar';
@@ -87,6 +87,23 @@ export default function Home({ products, loading, error, onRetry, query, onQuery
   // Back to the first page whenever the result set changes.
   useEffect(() => setVisible(PAGE_SIZE), [effectiveBudget, category, moment, parsed.words, sort]);
 
+  // Infinite scroll: when the marker under the grid comes within ~600px of the viewport, reveal the next page.
+  // The observer is recreated after each page, so a marker that is still on screen (tall window) keeps loading.
+  const sentinel = useRef<HTMLDivElement>(null);
+  const hasMore = visible < picks.length;
+  useEffect(() => {
+    const el = sentinel.current;
+    if (!hasMore || !el) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((e) => e.isIntersecting)) setVisible((v) => v + PAGE_SIZE);
+      },
+      { rootMargin: '600px 0px' },
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [hasMore, visible]);
+
   const deals = useMemo(() => products.filter((p) => p.deal), [products]);
   const scrollToPicks = () => document.getElementById('picks')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   const activeMoment = moments.find((m) => m.id === moment);
@@ -161,11 +178,9 @@ export default function Home({ products, loading, error, onRetry, query, onQuery
               ))}
             </div>
             {visible < picks.length && (
-              <div className="more">
-                <p className="muted">Showing {visible} of {picks.length}</p>
-                <button className="btn btn-dark" onClick={() => setVisible((v) => v + PAGE_SIZE)}>
-                  Show {Math.min(PAGE_SIZE, picks.length - visible)} more
-                </button>
+              // Scrolling near this marker loads the next page (see the observer effect above).
+              <div className="more" ref={sentinel} aria-live="polite">
+                <p className="muted">Showing {visible} of {picks.length}, loading more as you scroll…</p>
               </div>
             )}
           </>

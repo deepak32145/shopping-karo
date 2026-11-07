@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type ReactElement } from 'react';
 import { Link, Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from './auth';
+import AssistantChat from './components/AssistantChat';
 import AuthDialog, { AuthMode } from './components/AuthDialog';
 import CartDrawer from './components/CartDrawer';
 import Footer from './components/Footer';
@@ -211,6 +212,7 @@ export default function App() {
           setResetToken(null); // link is single use
         }}
       />
+      {!isAdmin && <AssistantChat userId={auth.user?.id ?? null} />}
       {!isAdmin && (
         <CartDrawer
           open={cartOpen}

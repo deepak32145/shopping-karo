@@ -45,6 +45,7 @@ using its public keys (`/.well-known/jwks.json`), so they never call it per requ
 | cart-service (Node) | 8083 | `sk_cart` | one saved cart per signed-in user; merges the guest cart on sign-in |
 | user-service (Java) | 8084 | `sk_user` | address book (up to 10 addresses, one default) |
 | order-service (Java) | 8085 | `sk_order` | checkout, fake payment gateway (card / UPI / cash on delivery), order lifecycle, live updates (SSE), admin order management |
+| assistant-service (Node) | 8086 | `sk_assistant` | "Karo", the shopping guide chat widget; calls Claude, reads the public catalogue, saves signed-in users' chats |
 
 ```bash
 pnpm install
@@ -72,6 +73,35 @@ Each service reads its own `.env` (gitignored) from its folder.
 **Stock reservation needs a shared secret.** order-service tells catalog-service to take or return stock through
 `/internal/stock/*`. Put the same random `INTERNAL_API_KEY=...` (16+ characters) in `services/catalog-service/.env` and
 `services/order-service/.env`. Without it the catalog's internal API stays switched off and checkout cannot reserve stock.
+
+### The shopping assistant (Karo)
+The chat button on the storefront talks to `assistant-service`. Put your Anthropic key in `services/assistant-service/.env`
+(gitignored); without it the service starts and the chat politely says the assistant is not switched on.
+```bash
+ANTHROPIC_API_KEY=sk-ant-...
+ASSISTANT_MODEL=claude-opus-5-5     # optional; claude-haiku-5-5 is far cheaper and fine for this job
+DAILY_TOKEN_BUDGET=2000000          # optional; tokens per UTC day across all users, then the assistant rests until midnight UTC
+```
+```bash
+pnpm --filter assistant-service dev   # http://localhost:8086
+pnpm --filter assistant-service test  # no API key or Docker needed: the model is replaced by a script
+```
+How it is kept on topic and hard to abuse (each layer works even if another fails):
+1. **Input screening** (`guard.ts`): 500-character limit, invisible and look-alike characters removed, known override phrases and fake
+   chat markers turned away before any model call.
+2. **Server-held conversations**: the browser sends only its new message, so history and the system prompt cannot be forged; a chat
+   belongs to whoever started it and ends after 12 turns.
+3. **Strict system prompt** (`knowledge.ts`): scope limited to products and using the site; messages, product text and tool
+   results are declared to be data, never instructions; the assistant explains but cannot act on accounts, orders or payments.
+4. **Read-only tools** (`tools.ts`): product search and lookup over public catalogue data, arguments validated with zod, at most
+   4 model calls per message. No tool can touch an account, order or payment, and the prompt holds no secrets.
+5. **Output check**: a random marker in the prompt is watched for in the reply; if it appears the reply is replaced and the turn forgotten.
+6. **Abuse limits** (`limits.ts`): 15 messages per 10 minutes per visitor (40 when signed in), one answer at a time, a 10-minute
+   cool-down after 5 off-topic or hostile messages, `max_tokens` cap, and the daily token budget above.
+7. **Plain-text display**: answers are rendered as text, never HTML.
+**Saved chats.** Signed-in customers' chats are stored in MongoDB (`sk_assistant`) and listed under the clock icon in the widget; opening one shows the whole conversation and continues it where it stopped. Each user can only reach their own (every query is scoped by account), can delete any chat, and visitors' chats are never saved. The stored messages include tool calls, so delete or expire them in line with your privacy policy before real customers use this.
+Rate limits and visitors' chats live in memory, which is right for one instance; with several, move them to Redis. The site guide the assistant
+relies on is the `SITE_GUIDE` text in `knowledge.ts`: update it whenever checkout, payment or order rules change.
 
 ### How an order flows
 1. **Checkout** (`POST /orders`): the server reads your saved cart, prices it from the catalogue, snapshots the chosen address and
